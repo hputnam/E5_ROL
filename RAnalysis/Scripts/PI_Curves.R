@@ -149,6 +149,10 @@ Data$corr.micromol.s <- Data$sample.micromol.s - Data$blank.micromol.s
 Data$micromol.cm2.s <- Data$corr.micromol.s/Data$Surf.Area.cm2
 Data$micromol.cm2.h <- Data$micromol.cm2.s*3600
 
+Data <- subset(Data, Species!="Blank")
+write.csv(Data,"~/MyProjects/E5_ROL/RAnalysis/Data/All_PI_Curve_rates.csv")
+
+
 AP <- subset(Data, Species=="Apulchra")
 PL <- subset(Data, Species=="Porites")
 PM <- subset(Data, Species=="Pocillopora")
