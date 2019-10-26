@@ -36,7 +36,7 @@ library('phytotools')
 
 
 ##### PI Curve Rate Calculation #####
-path.p<-"~/MyProjects/E5_ROL/RAnalysis/Data/Respirometry/20191024/" #the location of all your respirometry files 
+path.p<-"~/MyProjects/E5_ROL/RAnalysis/Data/All_Resp/" #the location of all your respirometry files 
 
 #bring in the files
 file.names<-list.files(path = path.p, pattern = "csv$") #list all csv file names in the folder
@@ -44,8 +44,8 @@ Photo.R <- data.frame(matrix(NA, nrow=length(file.names)*2, ncol=4)) #generate a
 colnames(Photo.R) <- c("Fragment.ID","Intercept", "µmol.L.sec", "Temp")
 
 #Load Sample meta info Info
-Sample.Info <- read.csv(file="~/MyProjects/E5_ROL/RAnalysis/Data/Respirometry/20191024_PI_Curve_Sample_Info.csv", header=T) #read sample.info data
-Sample.Info$Fragment.ID <- paste(Sample.Info$Fragment.ID,"_",Sample.Info$Light_Level,sep = "")
+Sample.Info <- read.csv(file="~/MyProjects/E5_ROL/RAnalysis/Data/All_PI_Curve_Sample_Info.csv", header=T) #read sample.info data
+Sample.Info$Fragment.ID <- paste(Sample.Info$Fragment.ID,"_",Sample.Info$Light_Level, sep = "")
 
 #subset the data by light step using time breaks in the data
 for(i in 1:length(file.names)) { # for every file in list start at the first and run this following function
@@ -54,7 +54,8 @@ for(i in 1:length(file.names)) { # for every file in list start at the first and
   colnames(Photo.Data1) <- c("Time", "Value", "Temp")
   Photo.Data1$Time <- as.POSIXct(Photo.Data1$Time,format="%H:%M:%S", "HST") -7*60*60 #convert time from character to time
   Photo.Data1$Time <-format(strptime(Photo.Data1$Time, format="%Y-%m-%d %H:%M:%S"), "%H:%M:%S")
-  brk <- unique(as.POSIXct(Sample.Info$Start.time,format="%H:%M","HST"))
+  levs <- which(Sample.Info$Sample.ID ==sub("_.*", "", file.names[i]))
+  brk <- unique(as.POSIXct(Sample.Info$Start.time[levs],format="%H:%M","HST"))
   brk <-format(strptime(brk, format="%Y-%m-%d %H:%M:%S"), "%H:%M:%S")
   Step1 <- subset(Photo.Data1, Photo.Data1$Time > brk[1] & Photo.Data1$Time < brk[2])
   Step2 <- subset(Photo.Data1, Photo.Data1$Time > brk[2] & Photo.Data1$Time < brk[3])
@@ -94,7 +95,7 @@ for(i in 1:length(file.names)) { # for every file in list start at the first and
     axis(2, las=1)
     
     #set data reduction thinning parameter
-    thin <- 10
+    thin <- 20
     #save original unthinned data
     Photo.Data.orig<-Photo.Data
     
@@ -127,7 +128,7 @@ for(i in 1:length(file.names)) { # for every file in list start at the first and
 
 #view rates
 Photo.R
-write.csv(Photo.R,"~/MyProjects/E5_ROL/RAnalysis/Output/20191024_PI_Curve_rates.csv")
+write.csv(Photo.R,"~/MyProjects/E5_ROL/RAnalysis/Output/All_PI_Curve_rates.csv")
 
 #Merge rates with sample info
 Data <- merge(Photo.R, Sample.Info, by="Fragment.ID")
@@ -136,15 +137,15 @@ Data <- merge(Photo.R, Sample.Info, by="Fragment.ID")
 Data$micromol.s <- Data$µmol.L.sec * Data$Chamber.Vol.L
 
 #calculate the average of the blanks from each time step
-#blnks <- subset(Data, Sample.Type=="Blank")
-#blnks <-mean.blnks <- aggregate(micromol.s ~ Light_Level, data=blnks, FUN=mean)
-#Data <- merge(Data, blnks, by="Light_Level")
-#colnames(Data)[colnames(Data) == 'micromol.s.x'] <- 'sample.micromol.s'
-#colnames(Data)[colnames(Data) == 'micromol.s.y'] <- 'blank.micromol.s'
+blnks <- subset(Data, Sample.Type=="Blank")
+blnks <-mean.blnks <- aggregate(micromol.s ~ Light_Level, data=blnks, FUN=mean)
+Data <- merge(Data, blnks, by="Light_Level")
+colnames(Data)[colnames(Data) == 'micromol.s.x'] <- 'sample.micromol.s'
+colnames(Data)[colnames(Data) == 'micromol.s.y'] <- 'blank.micromol.s'
 
 #subtract the average of the blanks from each time step
-#Data$corr.micromol.s <- Data$sample.micromol.s - Data$blank.micromol.s
-Data$corr.micromol.s <- Data$micromol.s
+Data$corr.micromol.s <- Data$sample.micromol.s - Data$blank.micromol.s
+#Data$corr.micromol.s <- Data$micromol.s
 Data$micromol.cm2.s <- Data$corr.micromol.s/Data$Surf.Area.cm2
 Data$micromol.cm2.h <- Data$micromol.cm2.s*3600
 
@@ -188,7 +189,7 @@ PM <- subset(Data, Species=="Pocillopora")
 ##### Nonlinear Least Squares regression of a non-rectangular hyperbola (Marshall & Biscoe, 1980) #####
 
 
-pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_PICurves.pdf", width=10, height=5)
+pdf("~/MyProjects/E5_ROL/RAnalysis/Output/All_NLLS_PICurves.pdf", width=10, height=5)
 par(mfrow=c(1,3))
 
 # ACROPORA
@@ -198,7 +199,7 @@ Pc <- as.numeric(AP$micromol.cm2.h)
 
 #pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_Acropora_PICurves.pdf")
 #par(mfrow=c(1,1))
-plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-2, 4.0), cex.lab=0.8,cex.axis=0.8,cex=1, main="A) A. pulchra", adj = 0.05) #set plot info
+plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-3, 5.0), cex.lab=0.8,cex.axis=0.8,cex=1, main="A) A. pulchra", adj = 0.05) #set plot info
 mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
 mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
 
@@ -242,7 +243,7 @@ colnames(PI.Output) <- c("Apulchra")
 PAR <- as.numeric(PL$Light_Value)
 Pc <- as.numeric(PL$micromol.cm2.h)
 #pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_Porites_PICurves.pdf")
-plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-2, 4.0), cex.lab=0.8,cex.axis=0.8,cex=1, main="B) Porites", adj = 0.05) #set plot info
+plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-3, 5.0), cex.lab=0.8,cex.axis=0.8,cex=1, main="B) Porites", adj = 0.05) #set plot info
 mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
 mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
 
@@ -287,13 +288,13 @@ PI.Output <- cbind(PI.Output, PI.Output.PL)
 PAR <- as.numeric(PM$Light_Value)
 Pc <- as.numeric(PM$micromol.cm2.h)
 #pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_Pocillopora_PICurves.pdf")
-plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-2, 4.0), cex.lab=0.8,cex.axis=0.8,cex=1, main="C) Pocillopora", adj = 0.05) #set plot info
+plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-3, 5.0), cex.lab=0.8,cex.axis=0.8,cex=1, main="C) Pocillopora", adj = 0.05) #set plot info
 mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
 mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
 
 #fit a model using a Nonlinear Least Squares regression of a non-rectangular hyperbola (Marshall & Biscoe, 1980)
 curve.nlslrc.PA = nls(Pc ~ (1/(2*theta))*(AQY*PAR+Am-sqrt((AQY*PAR+Am)^2-4*AQY*theta*Am*PAR))-Rd,
-                      start=list(Am=(max(Pc)-min(Pc)),AQY=0.05,Rd=-min(Pc),theta=0.01)) 
+                      start=list(Am=(max(Pc)-min(Pc)),AQY=0.05,Rd=-min(Pc),theta=1)) 
 
 my.fit.PA <- summary(curve.nlslrc.PA ) #summary of model fit
 
