@@ -16,6 +16,13 @@ if ("lubridate" %in% rownames(installed.packages()) == 'FALSE') install.packages
 if ("chron" %in% rownames(installed.packages()) == 'FALSE') install.packages('chron') 
 if ("dplyr" %in% rownames(installed.packages()) == 'FALSE') install.packages('dplyr') 
 if ("phytotools" %in% rownames(installed.packages()) == 'FALSE') install.packages('phytotools') 
+if ("brms" %in% rownames(installed.packages()) == 'FALSE') install.packages('brms') 
+if ("broom" %in% rownames(installed.packages()) == 'FALSE') install_github('broom') 
+if ("tidybayes" %in% rownames(installed.packages()) == 'FALSE') install.packages('tidybayes') 
+if ("purrr" %in% rownames(installed.packages()) == 'FALSE') install.packages('purrr') 
+if ("modelr" %in% rownames(installed.packages()) == 'FALSE') install.packages('modelr') 
+if ("bayesplot" %in% rownames(installed.packages()) == 'FALSE') install.packages('bayesplot') 
+if ("cowplot" %in% rownames(installed.packages()) == 'FALSE') install.packages('cowplot') 
 
 #Read in required libraries
 ##### Include Versions of libraries
@@ -38,11 +45,11 @@ library(cowplot)
 
 ################ Read in the Data ##################
 
-Data<-read.csv(file = 'RAnalysis/Data/Bayes_All_PI_Curve_rates.csv')
+Data<-read.csv(file = 'RAnalysis/Data/All_PI_Curve_rates.csv')
 # add a column for site
 Data<-separate(data = Data, col = Fragment.ID, into = "Site", sep =  "-", remove = TRUE)
 # function to plot PI curves using Baysian analysis
-PICurve_ind<-function(Data = Data, IndividualID, PlotDiagnostics = TRUE, PlotResults = TRUE, n_cores = 3,
+PICurve_ind<-function(Data = Data, IndividualID, PlotDiagnostics = TRUE, PlotResults = TRUE, n_cores = 4,
                       PAR_col_name = "Light_Value", rate_col_name = "micromol.cm2.h", ind_col_name = "Sample.ID"){
   
   ## Data = Dataframe

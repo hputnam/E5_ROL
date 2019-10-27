@@ -36,15 +36,15 @@ library('phytotools')
 
 
 ##### PI Curve Rate Calculation #####
-path.p<-"~/MyProjects/E5_ROL/RAnalysis/Data/All_Resp/" #the location of all your respirometry files 
+path.p<-"RAnalysis/Data/All_Resp/" #the location of all your respirometry files 
 
 #bring in the files
 file.names<-list.files(path = path.p, pattern = "csv$") #list all csv file names in the folder
-Photo.R <- data.frame(matrix(NA, nrow=length(file.names)*2, ncol=4)) #generate a 3 column dataframe with specific column names
+Photo.R <- data.frame(matrix(NA, nrow=length(file.names)*12, ncol=4)) #generate a 3 column dataframe with specific column names
 colnames(Photo.R) <- c("Fragment.ID","Intercept", "µmol.L.sec", "Temp")
 
 #Load Sample meta info Info
-Sample.Info <- read.csv(file="~/MyProjects/E5_ROL/RAnalysis/Data/All_PI_Curve_Sample_Info.csv", header=T) #read sample.info data
+Sample.Info <- read.csv(file="RAnalysis/Data/All_PI_Curve_Sample_Info.csv", header=T) #read sample.info data
 Sample.Info$Fragment.ID <- paste(Sample.Info$Fragment.ID,"_",Sample.Info$Light_Level, sep = "")
 
 #subset the data by light step using time breaks in the data
@@ -125,6 +125,7 @@ for(i in 1:length(file.names)) { # for every file in list start at the first and
     Photo.R[j+s[i],4] <- mean(Photo.Data$Temp, na.rm=T)  #stores the Temperature in the Temp.C column
   }
 }
+
 
 #view rates
 Photo.R
@@ -253,7 +254,7 @@ mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=
 
 #fit a model using a Nonlinear Least Squares regression of a non-rectangular hyperbola (Marshall & Biscoe, 1980)
 curve.nlslrc.PA = nls(Pc ~ (1/(2*theta))*(AQY*PAR+Am-sqrt((AQY*PAR+Am)^2-4*AQY*theta*Am*PAR))-Rd,
-                      start=list(Am=(max(Pc)-min(Pc)),AQY=0.05,Rd=-min(Pc),theta=0.01)) 
+                      start=list(Am=(max(Pc)-min(Pc)),AQY=0.05,Rd=-min(Pc),theta=0.9)) 
 
 my.fit.PA <- summary(curve.nlslrc.PA ) #summary of model fit
 
