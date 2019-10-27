@@ -39,10 +39,11 @@ library(cowplot)
 ################ Read in the Data ##################
 
 Data<-read.csv(file = 'RAnalysis/Data/Bayes_All_PI_Curve_rates.csv')
-
+# add a column for site
+Data<-separate(data = Data, col = Fragment.ID, into = "Site", sep =  "-", remove = TRUE)
 # function to plot PI curves using Baysian analysis
 PICurve_ind<-function(Data = Data, IndividualID, PlotDiagnostics = TRUE, PlotResults = TRUE, n_cores = 3,
-                      PAR_col_name = "Light_Level", rate_col_name = "micromol.cm2.h", ind_col_name = "Sample.ID"){
+                      PAR_col_name = "Light_Value", rate_col_name = "micromol.cm2.h", ind_col_name = "Sample.ID"){
   
   ## Data = Dataframe
   ## IndividualID = ID to sample from
@@ -129,7 +130,7 @@ pt2<-ggplot(as.data.frame(pt1$Light_Value))+ # pull pur the fitted data
   geom_point(data = Individual.selected, aes(x = Light_Value, y = micromol.cm2.h)) +# add the raw data
   theme_bw()+
   xlab(expression(paste('PAR (', mu, "mol photons m"^-2, 'hr'^-1,")")))+
-  ylab(expression(paste('Log photosynthetic rate (', mu, "mol cm"^-2, 's'^-1,")")))+
+  ylab(expression(paste('Photosynthetic rate (', mu, "mol cm"^-2, 's'^-1,")")))+
   theme(text = element_text(size=18), title = element_text(face="italic"))
 
 ggsave(filename = paste0('RAnalysis/Output/BayesPICurves/PICurve_',spec.name,'.pdf'),plot = pt2, width = 6, height = 6 )
@@ -157,8 +158,7 @@ PICurve_ind_noerror <- possibly(PICurve_ind, otherwise = p)
 
 #Run Bayesian PI for all Individuals, export plots, and save the 95% CI of each parameter
 Param.output<-Data %>%
-  #  filter(Species == 'Padi') %>% # do everything but Acali for now
-  group_by(Sample.ID, Species) %>%
+  group_by(Sample.ID, Species, Site) %>%
   do(PICurve_ind_noerror(Data = ., IndividualID = unique(.$Sample.ID)))
 
 # add a column for plotting names
