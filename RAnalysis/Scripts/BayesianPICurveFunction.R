@@ -174,6 +174,13 @@ prettynames$varnames<-c("Am","AQY","Rd","Theta", "Sigma")
 Param.output<-left_join(Param.output,prettynames)# make the names easier for plotting
 write.csv(file  = 'RAnalysis/Output/BayesPICurves/parameters.csv', x = Param.output)
 
-  
 
+## Make a plot of the means
+Param.output%>%
+  group_by(Species, Site, varnames)%>%
+  summarise(mean.value = mean(.value), se = std.error(.value)) %>%
+  ggplot(aes(x = Site, y = mean.value, group = Species, color = Species))+
+  geom_point(size = 3)+
+  geom_errorbar(aes(x = Site, ymin = mean.value-se, ymax = mean.value+se), width = 0.5)+
+  facet_wrap(~varnames*Species, scale = "free")
 
