@@ -163,9 +163,10 @@ Param.output<-Data %>%
 
 # add a column for plotting names
 prettynames<-data.frame(.variable = unique(Param.output$.variable))
-prettynames$varnames<-c("AQY","Am","Theta","Rd", "Sigma")
+prettynames$varnames<-c("Am","AQY","Rd","Theta", "Sigma")
 Param.output<-left_join(Param.output,prettynames)# make the names easier for plotting
 write.csv(file  = 'RAnalysis/Output/BayesPICurves/parameters.csv', x = Param.output)
 
   
+
 
