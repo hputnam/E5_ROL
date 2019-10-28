@@ -204,7 +204,7 @@ Pc <- as.numeric(AP$micromol.cm2.h)
 
 #pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_Acropora_PICurves.pdf")
 #par(mfrow=c(1,1))
-plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-3, 5.0), cex.lab=0.8,cex.axis=0.8,cex=1, main="A) A. pulchra", adj = 0.05) #set plot info
+plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-1, 2), cex.lab=0.8,cex.axis=0.8,cex=1, main="A) A. pulchra", adj = 0.05) #set plot info
 mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
 mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
 
@@ -248,7 +248,7 @@ colnames(PI.Output) <- c("Apulchra")
 PAR <- as.numeric(PL$Light_Value)
 Pc <- as.numeric(PL$micromol.cm2.h)
 #pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_Porites_PICurves.pdf")
-plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-3, 5.0), cex.lab=0.8,cex.axis=0.8,cex=1, main="B) Porites", adj = 0.05) #set plot info
+plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-1, 2), cex.lab=0.8,cex.axis=0.8,cex=1, main="B) Porites", adj = 0.05) #set plot info
 mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
 mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
 
@@ -293,13 +293,13 @@ PI.Output <- cbind(PI.Output, PI.Output.PL)
 PAR <- as.numeric(PM$Light_Value)
 Pc <- as.numeric(PM$micromol.cm2.h)
 #pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_Pocillopora_PICurves.pdf")
-plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-3, 5.0), cex.lab=0.8,cex.axis=0.8,cex=1, main="C) Pocillopora", adj = 0.05) #set plot info
+plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-1, 2), cex.lab=0.8,cex.axis=0.8,cex=1, main="C) Pocillopora", adj = 0.05) #set plot info
 mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
 mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
 
 #fit a model using a Nonlinear Least Squares regression of a non-rectangular hyperbola (Marshall & Biscoe, 1980)
 curve.nlslrc.PA = nls(Pc ~ (1/(2*theta))*(AQY*PAR+Am-sqrt((AQY*PAR+Am)^2-4*AQY*theta*Am*PAR))-Rd,
-                      start=list(Am=(max(Pc)-min(Pc)),AQY=0.05,Rd=-min(Pc),theta=1)) 
+                      start=list(Am=(max(Pc)-min(Pc)),AQY=0.05,Rd=-min(Pc),theta=0.1)) 
 
 my.fit.PA <- summary(curve.nlslrc.PA ) #summary of model fit
 
