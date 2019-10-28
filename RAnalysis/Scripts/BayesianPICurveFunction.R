@@ -42,6 +42,9 @@ library(purrr)
 library(modelr)
 library(bayesplot)
 library(cowplot)
+library(rstan)
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
 
 ################ Read in the Data ##################
 
