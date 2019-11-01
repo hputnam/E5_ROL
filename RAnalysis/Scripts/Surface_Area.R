@@ -32,5 +32,5 @@ E5.Data <- subset(Data, Sample.Type=="E5")
 E5.Data$delta.mass.g <- E5.Data$waxedmass.g-E5.Data$mass.g
 
 E5.Data$SA.cm2 <- stnd.curve$coefficients[2] * E5.Data$delta.mass.g + stnd.curve$coefficients[1]
-write.csv(E5.Data, "RAnalysis/Data/surface_area.csv")
+write.csv(E5.Data, "RAnalysis/Data/E5surface_area.csv")
 
