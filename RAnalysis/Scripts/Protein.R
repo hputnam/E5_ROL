@@ -61,8 +61,23 @@ Holo.avgs <- merge(Holo.avgs, Meta, by="Sample.ID")
 Holo.avgs$group <- paste0(Holo.avgs$Species,"_",Holo.avgs$Site)
 boxplot(Holo.avgs$protein.ug.cm2 ~ Holo.avgs$group, las=2)  
 
-pdf("RAnalysis/Output/protein.pdf")
+
+myColors <- c("grey", "orange", "orange", "cyan", "cyan", "cyan", "green", "green", "green" )
+
+pdf("RAnalysis/Output/Protein.pdf")
 par(mfrow=c(1,2))
-boxplot(Host.avgs$protein.ug.cm2 ~ Host.avgs$group, las=2)
-boxplot(Holo.avgs$protein.ug.cm2 ~ Holo.avgs$group, las=2)
+boxplot(Host.avgs$protein.ug.cm2 ~ Host.avgs$group, las=2, ylab=expression(paste("Host Total Protein µg cm-"^"2")), ylim=c(0,0.65),col=myColors, xaxt='n', xlab="") 
+legend("topleft", legend = c("Garden A.pulchra","A.pulchra", "Poc.meandrina", "Por.lutea" ) , 
+       col = c("grey","orange", "cyan","green" ) , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(0.03, 0.1))
+
+boxplot(Holo.avgs$protein.ug.cm2 ~ Holo.avgs$group, las=2, ylab=expression(paste("Holobiont Total Protein µg cm-"^"2")), ylim=c(0,0.65),col=myColors, xaxt='n', xlab="") 
+dev.off()
+
+jpeg("RAnalysis/Output/Protein.jpg")
+par(mfrow=c(1,2))
+boxplot(Host.avgs$protein.ug.cm2 ~ Host.avgs$group, las=2, ylab=expression(paste("Host Total Protein µg cm-"^"2")), ylim=c(0,0.65),col=myColors, xaxt='n', xlab="") 
+legend("topleft", legend = c("Garden A.pulchra","A.pulchra", "Poc.meandrina", "Por.lutea" ) , 
+       col = c("grey","orange", "cyan","green" ) , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(0.03, 0.1))
+
+boxplot(Holo.avgs$protein.ug.cm2 ~ Holo.avgs$group, las=2, ylab=expression(paste("Holobiont Total Protein µg cm-"^"2")), ylim=c(0,0.65),col=myColors, xaxt='n', xlab="") 
 dev.off()

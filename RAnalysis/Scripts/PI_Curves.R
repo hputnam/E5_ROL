@@ -18,7 +18,7 @@ if ("lubridate" %in% rownames(installed.packages()) == 'FALSE') install.packages
 if ("chron" %in% rownames(installed.packages()) == 'FALSE') install.packages('chron') 
 if ("plyr" %in% rownames(installed.packages()) == 'FALSE') install.packages('plyr') 
 if ("dplyr" %in% rownames(installed.packages()) == 'FALSE') install.packages('dplyr') 
-if ("phytotools" %in% rownames(installed.packages()) == 'FALSE') install.packages('phytotools') 
+#if ("phytotools" %in% rownames(installed.packages()) == 'FALSE') install.packages('phytotools') 
 
 #Read in required libraries
 ##### Include Versions of libraries
@@ -32,7 +32,7 @@ library("lubridate")
 library("chron")
 library('plyr')
 library('dplyr')
-library('phytotools')
+#library('phytotools')
 
 
 ##### PI Curve Rate Calculation #####
@@ -68,8 +68,8 @@ for(i in 1:length(file.names)) { # for every file in list start at the first and
   Step9 <- subset(Photo.Data1, Photo.Data1$Time > brk[9] & Photo.Data1$Time < brk[10])
   Step10 <- subset(Photo.Data1, Photo.Data1$Time > brk[10] & Photo.Data1$Time < brk[11])
   Step11 <- subset(Photo.Data1, Photo.Data1$Time > brk[11] & Photo.Data1$Time < brk[12])
-  Step12 <- subset(Photo.Data1, Photo.Data1$Time > brk[12])
-  lt.levs <- list(Step1,Step2,Step3,Step4,Step5,Step6,Step7,Step8,Step9,Step10,Step11,Step12) #list levels of segmentation
+  #Step12 <- subset(Photo.Data1, Photo.Data1$Time > brk[12])
+  lt.levs <- list(Step1,Step2,Step3,Step4,Step5,Step6,Step7,Step8,Step9,Step10,Step11) #list levels of segmentation
   
   for(j in 1:length(lt.levs)){    
     Photo.Data <- as.data.frame(lt.levs[j])
@@ -153,7 +153,7 @@ Data$micromol.cm2.h <- Data$micromol.cm2.s*3600
 Data <- subset(Data, Species!="Blank")
 write.csv(Data,"~/MyProjects/E5_ROL/RAnalysis/Data/All_PI_Curve_rates.csv")
 
-
+AP.geno <- subset(Data, Species=="Apul")
 AP <- subset(Data, Species=="Apulchra")
 PL <- subset(Data, Species=="Porites")
 PM <- subset(Data, Species=="Pocillopora")
@@ -161,56 +161,72 @@ PM <- subset(Data, Species=="Pocillopora")
 #MC <- subset(Data, Species=="Mcapitata")
 #write.csv(MC,"~/MyProjects/Holobiont_Integration/RAnalysis/Output/20180914_PI_Curve_rates_Mcapitata.csv")
 
-#####
-# #Plot curves
-# pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_PICurves.pdf")
-# par(mfrow=c(1,1))
-# 
-# #Pocillopora acuta
-# PAR <- as.numeric(PA$Light_Value)
-# Pc <- as.numeric(PA$micromol.cm2.h)
-# plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)),cex.lab=0.8,cex.axis=0.8,cex=1, main="A) A. pulchra", adj = 0.05) #set plot info
-# mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
-# mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
-# 
-# PA.mod <- fitJP(PAR, Pc, normalize = FALSE, lowerlim = c(0, 1), upperlim = c(100, 1000), fitmethod=c("Nelder-Mead"))
-# A.PA <- PA.mod$alpha[1]
-# A.PA
-# Ik.PA <- PA.mod$ek[1]
-# Ik.PA
-# 
-# #Add model fit
-# E <- seq(-50,1500,by=1)
-# P <- PA.mod$alpha[1]*PA.mod$ek[1]*tanh(E/PA.mod$ek[1])
-# lines(E,P)
-# lines(cbind(PA.mod$ek[1], P),lwd=2,col="red") #add Ik line
-# 
-# dev.off()
-# 
-# #Sat.Irr <- Ik
-# #Sat.Irr
-
 
 ##### Nonlinear Least Squares regression of a non-rectangular hyperbola (Marshall & Biscoe, 1980) #####
 
-
 pdf("~/MyProjects/E5_ROL/RAnalysis/Output/All_NLLS_PICurves.pdf", width=10, height=5)
-par(mfrow=c(1,3))
+par(mfrow=c(2,2))
 
-# ACROPORA
+# ACROPORA Sites
+#Plot curves
+PAR <- as.numeric(AP.geno$Light_Value)
+Pc <- as.numeric(AP.geno$micromol.cm2.h)
+
+#pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_Acropora_PICurves.pdf")
+#par(mfrow=c(1,1))
+plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-1, 2), cex.lab=0.8,cex.axis=0.8,cex=1, main="A) A. pulchra Garden", adj = 0.05) #set plot info
+mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
+mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
+
+#fit a model using a Nonlinear Least Squares regression of a non-rectangular hyperbola (Marshall & Biscoe, 1980)
+curve.nlslrc.PA = nls(Pc ~ (1/(2*theta))*(AQY*PAR+Am-sqrt((AQY*PAR+Am)^2-4*AQY*theta*Am*PAR))-Rd,
+                      start=list(Am=(max(Pc)-min(Pc)),AQY=0.05,Rd=-min(Pc),theta=.001)) 
+
+my.fit.PA <- summary(curve.nlslrc.PA ) #summary of model fit
+
+#draw the curve using the model fit
+curve.fitting.PA <- curve((1/(2*summary(curve.nlslrc.PA)$coef[4,1]))*(summary(curve.nlslrc.PA)$coef[2,1]*x+summary(curve.nlslrc.PA)$coef[1,1]-sqrt((summary(curve.nlslrc.PA)$coef[2,1]*x+summary(curve.nlslrc.PA)$coef[1,1])^2-4*summary(curve.nlslrc.PA)$coef[2,1]*summary(curve.nlslrc.PA)$coef[4,1]*summary(curve.nlslrc.PA)$coef[1,1]*x))-summary(curve.nlslrc.PA)$coef[3,1],lwd=2,col="blue",add=T)
+#dev.off()
+
+#Extract the parameters
+
+#Amax (max gross photosytnthetic rate) 
+Pmax.gross <- my.fit.PA$parameters[1]
+
+#AQY (AP.genoparent quantum yield) alpha  
+AQY <- my.fit.PA$parameters[2]
+
+#Rd (dark respiration)
+Rd <- my.fit.PA$parameters[3]
+
+# Ik light saturation point
+Ik <- Pmax.gross/AQY
+
+# Ic light compensation point
+Ic <- Rd/AQY
+
+# Net photosynthetic rates
+Pmax.net <- Pmax.gross - Rd
+
+#output parameters into a table
+PI.Output <- as.data.frame(rbind(Pmax.gross, Pmax.net, -Rd, AQY,Ik,Ic))
+row.names(PI.Output) <- c("Pg.max","Pn.max","Rdark","alpha", "Ik", "Ic")
+colnames(PI.Output) <- c("AP.geno")
+
+# ACROPORA Sites
 #Plot curves
 PAR <- as.numeric(AP$Light_Value)
 Pc <- as.numeric(AP$micromol.cm2.h)
 
 #pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_Acropora_PICurves.pdf")
 #par(mfrow=c(1,1))
-plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-1, 2), cex.lab=0.8,cex.axis=0.8,cex=1, main="A) A. pulchra", adj = 0.05) #set plot info
+plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-1, 2), cex.lab=0.8,cex.axis=0.8,cex=1, main="B) A. pulchra Sites", adj = 0.05) #set plot info
 mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
 mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
 
 #fit a model using a Nonlinear Least Squares regression of a non-rectangular hyperbola (Marshall & Biscoe, 1980)
 curve.nlslrc.PA = nls(Pc ~ (1/(2*theta))*(AQY*PAR+Am-sqrt((AQY*PAR+Am)^2-4*AQY*theta*Am*PAR))-Rd,
-                      start=list(Am=(max(Pc)-min(Pc)),AQY=0.05,Rd=-min(Pc),theta=1)) 
+                      start=list(Am=(max(Pc)-min(Pc)),AQY=0.05,Rd=-min(Pc),theta=0.01)) 
 
 my.fit.PA <- summary(curve.nlslrc.PA ) #summary of model fit
 
@@ -243,12 +259,14 @@ PI.Output <- as.data.frame(rbind(Pmax.gross, Pmax.net, -Rd, AQY,Ik,Ic))
 row.names(PI.Output) <- c("Pg.max","Pn.max","Rdark","alpha", "Ik", "Ic")
 colnames(PI.Output) <- c("Apulchra")
 
+
+
 # PORITES
 #Plot curves
 PAR <- as.numeric(PL$Light_Value)
 Pc <- as.numeric(PL$micromol.cm2.h)
 #pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_Porites_PICurves.pdf")
-plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-1, 2), cex.lab=0.8,cex.axis=0.8,cex=1, main="B) Porites", adj = 0.05) #set plot info
+plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-1, 2), cex.lab=0.8,cex.axis=0.8,cex=1, main="C) Porites", adj = 0.05) #set plot info
 mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
 mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
 
@@ -293,7 +311,7 @@ PI.Output <- cbind(PI.Output, PI.Output.PL)
 PAR <- as.numeric(PM$Light_Value)
 Pc <- as.numeric(PM$micromol.cm2.h)
 #pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLS_Pocillopora_PICurves.pdf")
-plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-1, 2), cex.lab=0.8,cex.axis=0.8,cex=1, main="C) Pocillopora", adj = 0.05) #set plot info
+plot(PAR,Pc,xlab="", ylab="", xlim=c(0,max(PAR)), ylim=c(-1, 2), cex.lab=0.8,cex.axis=0.8,cex=1, main="D) Pocillopora", adj = 0.05) #set plot info
 mtext(expression("Irradiance ("*mu*"mol photons "*m^-2*s^-1*")"),side=1,line=3.3,cex=1) #add labels
 mtext(expression(Rate*" ("*mu*"mol "*O[2]*" "*cm^-2*h^-1*")"),side=2,line=2,cex=1) #add labels
 
@@ -334,11 +352,11 @@ PI.Output <- cbind(PI.Output, PI.Output.PM)
 PI.Output <- round(PI.Output, digits = 3)
 
 
-legend('topright', ncol = 4L, cex=0.9,
-       legend = c('parameter', rownames(PI.Output), 
-                  colnames(PI.Output)[1], PI.Output[1:6,1], 
-                  colnames(PI.Output)[2], PI.Output[1:6,2], 
-                  colnames(PI.Output)[3], PI.Output[1:6,3]))
+# legend('topright', ncol = 4L, cex=0.9,
+#        legend = c('parameter', rownames(PI.Output), 
+#                   colnames(PI.Output)[1], PI.Output[1:6,1], 
+#                   colnames(PI.Output)[2], PI.Output[1:6,2], 
+#                   colnames(PI.Output)[3], PI.Output[1:6,3]))
 dev.off()
 
 # pdf("~/MyProjects/E5_ROL/RAnalysis/Output/20191024_NLLSR_PICurves.pdf")

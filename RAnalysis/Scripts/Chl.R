@@ -17,9 +17,10 @@ Data <- read.csv("RAnalysis/Data/20191031_Plate1_CHL.csv")
 # chlc2 = 27.09*A630 - 3.63*A663
 
 #remove background at 750nm
-
 Data$X630 <- Data$X630-Data$X750
 Data$X663 <- Data$X663-Data$X750
+
+#NEED TO CORRECT FOR PATHLENGTH OF 200µl in a 96 well quartz plate
 
 #Calculate Chl-a and Chl-c2 in µg/ml
 Data$chla.ug.ml <- 11.43*Data$X663 - 0.64*Data$X630
@@ -45,5 +46,21 @@ Data.avg <- merge(Data.avg, Surface.Area,  by="Sample.ID")
 Data.avg$chla.ug.cm2 <- Data.avg$chla.ug / Data.avg$SA.cm2  
 Data.avg$chlc2.ug.cm2 <- Data.avg$chlc2.ug / Data.avg$SA.cm2 
 Data.avg$group <- paste0(Data.avg$Species,"_",Data.avg$Site)
-boxplot(Data.avg$chla.ug.cm2 ~ Data.avg$group, las=2)
 
+myColors <- c("grey", "orange", "orange", "cyan", "cyan", "cyan", "green", "green", "green" )
+
+pdf("RAnalysis/Output/chl.pdf")
+par(mfrow=c(1,2))
+boxplot(Data.avg$chla.ug.cm2 ~ Data.avg$group, las=2, ylim=c(0,5), ylab=expression(paste("Chla cm-"^"2")),col=myColors, xaxt='n', xlab="") 
+legend("topleft", legend = c("Garden A.pulchra","A.pulchra", "Poc.meandrina", "Por.lutea" ) , 
+       col = c("grey","orange", "cyan","green" ) , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(0.03, 0.1))
+boxplot(Data.avg$chlc2.ug.cm2 ~ Data.avg$group, las=2, ylim=c(0,5), ylab=expression(paste("Chlc2 cm-"^"2")),col=myColors, xaxt='n', xlab="") 
+dev.off()
+
+jpeg("RAnalysis/Output/chl.jpg")
+par(mfrow=c(1,2))
+boxplot(Data.avg$chla.ug.cm2 ~ Data.avg$group, las=2, ylim=c(0,5), ylab=expression(paste("Chla cm-"^"2")),col=myColors, xaxt='n', xlab="") 
+legend("topleft", legend = c("Garden A.pulchra","A.pulchra", "Poc.meandrina", "Por.lutea" ) , 
+       col = c("grey","orange", "cyan","green" ) , bty = "n", pch=20 , pt.cex = 3, cex = 1, horiz = FALSE, inset = c(0.03, 0.1))
+boxplot(Data.avg$chlc2.ug.cm2 ~ Data.avg$group, las=2, ylim=c(0,5), ylab=expression(paste("Chlc2 cm-"^"2")),col=myColors, xaxt='n', xlab="") 
+dev.off()

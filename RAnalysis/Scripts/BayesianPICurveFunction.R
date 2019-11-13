@@ -78,11 +78,13 @@ options("scipen"=100,digits=12) # stan doesnt like scientific notation. This fix
 #fit a model using a Bayesian model of a non-rectangular hyperbola (Marshall & Biscoe, 1980)
 
 # this is for posterior predictove checks
-stanvars <- stanvar(scode = "vector[N] y_new;
+stanvars <- stanvar(scode = "vector[N] y_new; real Ic;
   vector[N] nlp_theta = X_theta * b_theta;
   vector[N] nlp_AQY = X_AQY * b_AQY;
   vector[N] nlp_Am = X_Am * b_Am;
   vector[N] nlp_Rd = X_Rd * b_Rd;
+  Ic = nlp_Rd[1]/nlp_AQY[1];
+
     for (n in 1:N) {  
         y_new[n] = normal_rng((1 / (2 * nlp_theta[n])) * (nlp_AQY[n] * C_1[n] + nlp_Am[n] - sqrt((nlp_AQY[n] * C_1[n] + nlp_Am[n]) ^ 2 - 4 * nlp_AQY[n] * nlp_theta[n] * nlp_Am[n] * C_1[n])) - nlp_Rd[n], sigma);};",
         block = "genquant")
@@ -149,7 +151,7 @@ ggsave(filename = paste0('RAnalysis/Output/BayesPICurves/PICurve_',spec.name,'.p
 
 # return the parameters
 params<-fit1 %>%
-  gather_draws(b_AQY_Intercept, b_Am_Intercept, b_theta_Intercept, b_Rd_Intercept, sigma) %>%
+  gather_draws(b_AQY_Intercept, b_Am_Intercept, b_theta_Intercept, b_Rd_Intercept, sigma, Ic) %>%
   median_qi()
 
 return(params)
@@ -173,7 +175,7 @@ Param.output<-Data %>%
 
 # add a column for plotting names
 prettynames<-data.frame(.variable = unique(Param.output$.variable))
-prettynames$varnames<-c("Am","AQY","Rd","Theta", "Sigma")
+prettynames$varnames<-c("Am","AQY","Rd","Theta", "Sigma", "Ic")
 Param.output<-left_join(Param.output,prettynames)# make the names easier for plotting
 write.csv(file  = 'RAnalysis/Output/BayesPICurves/parameters.csv', x = Param.output)
 
@@ -183,7 +185,7 @@ Param.output <- subset(Param.output, varnames!="Theta" & varnames!="Sigma")
 Param.output$group <- paste0() 
 
 ymin <- c(0,0,0)
-ymax <- c(10,0.45,2)
+ymax <- c(4,0.45,2)
 
 ## Make a plot of the means
 Param.output%>%
@@ -192,10 +194,10 @@ Param.output%>%
   ggplot(aes(x = Site, y = mean.value, group = Species, color = Species))+
   geom_point(size = 3)+
   geom_errorbar(aes(x = Site, ymin = mean.value-se, ymax = mean.value+se), width = 0.5)+
-  facet_wrap(~varnames*Species, scales = "free_y", ncol = 3) +
-  coord_cartesian(ylim = c(ymin, ymax))
+  facet_wrap(~varnames*Species, scales = "free_y", ncol = 4) +
+  coord_cartesian(ylim = c(ymin, ymax)) 
   #coord_cartesian(ylim = c(0, 0.45)) +
-  #coord_cartesian(ylim = c(0, 2.5))
+ # coord_cartesian(ylim = c(0, 2.5))
   
 
 
