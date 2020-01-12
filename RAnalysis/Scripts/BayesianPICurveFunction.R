@@ -182,23 +182,82 @@ write.csv(file  = 'RAnalysis/Output/BayesPICurves/parameters.csv', x = Param.out
 
 Param.output <- read.csv(file='RAnalysis/Output/BayesPICurves/parameters.csv')
 Param.output <- subset(Param.output, varnames!="Theta" & varnames!="Sigma")
-Param.output$group <- paste0() 
+#Param.output$group <- paste0() 
 
-ymin <- c(0,0,0)
-ymax <- c(4,0.45,2)
+Param.output <- subset(Param.output, Site!="Apul")
+Param.output <- subset(Param.output, .variable!="sigma")
+
+xmin = 0 
+xmax = 3 
+ymin = c(0,0,0,0,0,0,0,0,0)
+ymax = c(03,3,3, 0.3,0.3, 0.3,1,1,1)
 
 ## Make a plot of the means
 Param.output%>%
+  group_by(Species, Site, .variable)%>%
+  summarise(mean.value = mean(.value), se = std.error(.value)) %>%
+  ggplot(aes(x = Site, y = mean.value, group = Species, color = Species))+
+  geom_point(size = 1)+
+  geom_errorbar(aes(x = Site, ymin = mean.value-se, ymax = mean.value+se), width = 0.5)+
+  facet_wrap(~.variable*Species, scales = "free_y", ncol = 3) +
+  #coord_cartesian(ylim = c(ymin, ymax)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, vjust=0.6)) +
+  theme(legend.position = "none") +
+  #ylab(expression(paste('Rate (', mu, "mol cm"^-2, 's'^-1,")")))+
+  ggsave("RAnalysis/Output/BayesPICurves/PI.png",width = 6, height = 9, units = "in")
+
+Param.output.AM <- subset(Param.output, .variable=="b_Am_Intercept")
+
+## Make a plot of the means
+Param.output.AM%>%
   group_by(Species, Site, varnames)%>%
   summarise(mean.value = mean(.value), se = std.error(.value)) %>%
   ggplot(aes(x = Site, y = mean.value, group = Species, color = Species))+
-  geom_point(size = 3)+
+  geom_point(size = 1)+
   geom_errorbar(aes(x = Site, ymin = mean.value-se, ymax = mean.value+se), width = 0.5)+
   facet_wrap(~varnames*Species, scales = "free_y", ncol = 4) +
-  coord_cartesian(ylim = c(ymin, ymax)) 
-  #coord_cartesian(ylim = c(0, 0.45)) +
- # coord_cartesian(ylim = c(0, 2.5))
+  coord_cartesian(ylim = c(0, 3)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, vjust=0.6)) +
+  theme(legend.position = "none") +
+  ylab(expression(paste('Rate (', mu, "mol cm"^-2, 's'^-1,")")))+
+  ggsave("RAnalysis/Output/BayesPICurves/PI.AM.png",width = 4, height = 2, units = "in")
+
+Param.output.AQY <- subset(Param.output, .variable=="b_AQY_Intercept")
+
+## Make a plot of the means
+Param.output.AQY%>%
+  group_by(Species, Site, varnames)%>%
+  summarise(mean.value = mean(.value), se = std.error(.value)) %>%
+  ggplot(aes(x = Site, y = mean.value, group = Species, color = Species))+
+  geom_point(size = 1)+
+  geom_errorbar(aes(x = Site, ymin = mean.value-se, ymax = mean.value+se), width = 0.5)+
+  facet_wrap(~varnames*Species, scales = "free_y", ncol = 4) +
+  coord_cartesian(ylim = c(0, 0.03)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, vjust=0.6)) +
+  theme(legend.position = "none") +
+  ylab(expression(paste('Rate (', mu, "mol cm"^-2, 's'^-1,")")))+
+  ggsave("RAnalysis/Output/BayesPICurves/PI.AQY.png",width = 4, height = 2, units = "in")
   
+Param.output.RD <- subset(Param.output, .variable=="b_Rd_Intercept")
+
+## Make a plot of the means
+Param.output.RD%>%
+  group_by(Species, Site, varnames)%>%
+  summarise(mean.value = mean(.value), se = std.error(.value)) %>%
+  ggplot(aes(x = Site, y = mean.value, group = Species, color = Species))+
+  geom_point(size = 1)+
+  geom_errorbar(aes(x = Site, ymin = mean.value-se, ymax = mean.value+se), width = 0.5)+
+  facet_wrap(~varnames*Species, scales = "free_y", ncol = 4) +
+  coord_cartesian(ylim = c(0, 1)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle=90, vjust=0.6)) +
+  theme(legend.position = "none") +
+  ylab(expression(paste('Rate (', mu, "mol cm"^-2, 's'^-1,")")))+
+  ggsave("RAnalysis/Output/BayesPICurves/PI.RD.png",width = 4, height = 2, units = "in")
+
 
 
 
